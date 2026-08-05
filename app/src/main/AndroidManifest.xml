@@ -47,6 +47,17 @@
                 android:resource="@xml/accessibility_config" />
         </service>
 
+        <service
+            android:name=".RemoteDreamService"
+            android:exported="true"
+            android:label="HomeRemote"
+            android:permission="android.permission.BIND_DREAM_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.dreams.DreamService" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </service>
+
         <receiver
             android:name=".BootReceiver"
             android:exported="true">
