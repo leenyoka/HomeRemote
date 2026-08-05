@@ -4,6 +4,8 @@ import android.app.*
 import android.content.Context
 import android.content.Intent
 import android.media.AudioManager
+import android.net.nsd.NsdManager
+import android.net.nsd.NsdServiceInfo
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
@@ -13,6 +15,8 @@ class RemoteService : Service() {
     private lateinit var server: RemoteServer
     private lateinit var audioManager: AudioManager
     private lateinit var overlay: MessageOverlay
+    private var nsdManager: NsdManager? = null
+    private var nsdListener: NsdManager.RegistrationListener? = null
 
     private val commandListener: (Command) -> Unit = { cmd ->
         when (cmd.action) {
@@ -38,6 +42,7 @@ class RemoteService : Service() {
         createNotificationChannel()
         startForeground(NOTIFICATION_ID, buildNotification())
         server.start()
+        registerNsd()
     }
 
     override fun onDestroy() {
@@ -45,9 +50,29 @@ class RemoteService : Service() {
         CommandBus.unsubscribe(commandListener)
         overlay.dismiss()
         server.stop()
+        try { nsdListener?.let { nsdManager?.unregisterService(it) } } catch (_: Exception) {}
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
+
+    private fun registerNsd() {
+        try {
+            val info = NsdServiceInfo().apply {
+                serviceName = "HomeRemote"
+                serviceType = "_http._tcp."
+                port = 8080
+            }
+            val listener = object : NsdManager.RegistrationListener {
+                override fun onRegistrationFailed(i: NsdServiceInfo, e: Int) { nsdListener = null }
+                override fun onUnregistrationFailed(i: NsdServiceInfo, e: Int) {}
+                override fun onServiceRegistered(i: NsdServiceInfo) {}
+                override fun onServiceUnregistered(i: NsdServiceInfo) {}
+            }
+            nsdListener = listener
+            nsdManager = getSystemService(Context.NSD_SERVICE) as NsdManager
+            nsdManager?.registerService(info, NsdManager.PROTOCOL_DNS_SD, listener)
+        } catch (_: Exception) {}
+    }
 
     private fun handleVolume(dir: String) {
         val flag = AudioManager.FLAG_SHOW_UI

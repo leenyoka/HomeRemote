@@ -1,6 +1,8 @@
 package com.homeremote
 
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.Color
 import android.net.ConnectivityManager
 import android.net.Uri
 import android.net.wifi.WifiManager
@@ -11,8 +13,11 @@ import android.os.Looper
 import android.provider.Settings
 import android.view.View
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.FragmentActivity
+import com.google.zxing.BarcodeFormat
+import com.google.zxing.qrcode.QRCodeWriter
 import java.net.Inet4Address
 
 class MainActivity : FragmentActivity() {
@@ -39,8 +44,20 @@ class MainActivity : FragmentActivity() {
         val ip = getLocalIp()
         val url = "http://$ip:8080"
         findViewById<TextView>(R.id.tv_url).text = url
-        findViewById<TextView>(R.id.tv_status).text =
-            "Open this URL in any browser on your WiFi network to control this TV"
+
+        generateQrCode(url, 512)?.let { bmp ->
+            findViewById<ImageView>(R.id.iv_qr).setImageBitmap(bmp)
+        }
+
+        val deviceName = Settings.Global.getString(contentResolver, "device_name")
+            ?.trim()
+            ?.lowercase()
+            ?.replace(Regex("[^a-z0-9]+"), "-")
+            ?.trim('-')
+        if (!deviceName.isNullOrBlank()) {
+            findViewById<TextView>(R.id.tv_local_url).text =
+                "or http://$deviceName.local:8080/"
+        }
 
         findViewById<Button>(R.id.btn_overlay_permission).setOnClickListener {
             val intent = Intent(
@@ -74,6 +91,17 @@ class MainActivity : FragmentActivity() {
             statusText.setTextColor(0xFFE94560.toInt())
             grantBtn.visibility = View.VISIBLE
         }
+    }
+
+    private fun generateQrCode(text: String, size: Int): Bitmap? {
+        return try {
+            val bits = QRCodeWriter().encode(text, BarcodeFormat.QR_CODE, size, size)
+            Bitmap.createBitmap(size, size, Bitmap.Config.RGB_565).apply {
+                for (x in 0 until size) for (y in 0 until size) {
+                    setPixel(x, y, if (bits[x, y]) Color.BLACK else Color.WHITE)
+                }
+            }
+        } catch (e: Exception) { null }
     }
 
     private fun getLocalIp(): String {

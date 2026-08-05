@@ -43,4 +43,5 @@ dependencies {
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.leanback:leanback:1.2.0")
     implementation("dev.mobile:dadb:1.2.7")
+    implementation("com.google.zxing:core:3.5.3")
 }

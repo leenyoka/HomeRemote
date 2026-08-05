@@ -43,14 +43,33 @@
         android:layout_marginBottom="12dp" />
 
     <TextView
-        android:id="@+id/tv_status"
+        android:id="@+id/tv_local_url"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text=""
+        android:textSize="16sp"
+        android:textColor="#7c5cbf"
+        android:gravity="center"
+        android:layout_marginBottom="16dp" />
+
+    <ImageView
+        android:id="@+id/iv_qr"
+        android:layout_width="260dp"
+        android:layout_height="260dp"
+        android:background="#ffffff"
+        android:padding="10dp"
+        android:scaleType="fitXY"
+        android:layout_marginBottom="10dp" />
+
+    <TextView
+        android:id="@+id/tv_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Point your phone camera at the QR code"
         android:textSize="14sp"
         android:textColor="#666666"
         android:gravity="center"
-        android:layout_marginBottom="40dp" />
+        android:layout_marginBottom="32dp" />
 
     <View
         android:layout_width="match_parent"
