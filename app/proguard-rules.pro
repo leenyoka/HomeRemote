@@ -1,0 +1,6 @@
+-keep class io.ktor.** { *; }
+-keep class kotlinx.coroutines.** { *; }
+-keep class com.homeremote.** { *; }
+-keep class com.google.gson.** { *; }
+-dontwarn io.ktor.**
+-dontwarn kotlinx.coroutines.**

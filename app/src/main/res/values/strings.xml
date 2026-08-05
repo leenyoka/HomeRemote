@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">HomeRemote</string>
+    <string name="accessibility_description">HomeRemote uses accessibility to navigate the TV with D-pad commands sent from any device on your WiFi network.</string>
+</resources>

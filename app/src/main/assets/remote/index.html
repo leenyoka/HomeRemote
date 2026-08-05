@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>HomeRemote</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    :root {
+      --bg: #0f0f1a;
+      --surface: #1a1a2e;
+      --surface2: #16213e;
+      --accent: #e94560;
+      --purple: #533483;
+      --text: #ffffff;
+      --muted: #888888;
+      --radius: 14px;
+    }
+
+    html, body {
+      margin: 0; padding: 0; height: 100%;
+      background: var(--bg); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      user-select: none; -webkit-user-select: none;
+      overscroll-behavior: none;
+    }
+
+    /* Status bar */
+    #statusbar {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 16px; background: var(--surface2);
+      font-size: 12px; color: var(--muted);
+      position: sticky; top: 0; z-index: 10;
+    }
+    #dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #ef4444; flex-shrink: 0;
+      transition: background 0.3s;
+    }
+    #dot.on { background: #22c55e; }
+
+    /* Tabs */
+    .tabs {
+      display: flex; background: var(--surface2);
+      border-bottom: 1px solid #1f1f3a;
+    }
+    .tab {
+      flex: 1; padding: 13px 4px; border: none; background: none;
+      color: var(--muted); font-size: 13px; font-weight: 500; cursor: pointer;
+      border-bottom: 2px solid transparent; transition: color 0.2s;
+    }
+    .tab.active { color: var(--text); border-bottom-color: var(--accent); }
+    .pane { display: none; padding: 20px 16px; }
+    .pane.active { display: block; }
+
+    /* D-pad */
+    .dpad-wrap { display: flex; justify-content: center; margin-bottom: 24px; }
+    .dpad {
+      display: grid;
+      grid-template-columns: 64px 80px 64px;
+      grid-template-rows: 64px 80px 64px;
+      gap: 6px;
+    }
+    .dp {
+      background: var(--surface); border: none; border-radius: var(--radius);
+      color: var(--text); font-size: 22px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.1s, transform 0.1s;
+    }
+    .dp:active { background: var(--accent); transform: scale(0.93); }
+    .dp-ok {
+      border-radius: 50%; background: var(--purple); font-size: 16px; font-weight: 600;
+    }
+    .dp-blank { background: none !important; }
+
+    /* Button rows */
+    .btn-row { display: flex; gap: 10px; margin-bottom: 14px; }
+    .btn {
+      flex: 1; padding: 14px 8px;
+      background: var(--surface); border: none; border-radius: var(--radius);
+      color: var(--text); font-size: 12px; font-weight: 500; cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; gap: 5px;
+      transition: background 0.1s, transform 0.1s;
+    }
+    .btn:active { background: var(--accent); transform: scale(0.95); }
+    .btn .ico { font-size: 22px; line-height: 1; }
+
+    /* Volume */
+    .vol-row { display: flex; align-items: center; gap: 12px; justify-content: center; margin-bottom: 14px; }
+    .vol-btn {
+      width: 64px; height: 64px; border-radius: 50%;
+      background: var(--surface); border: none; color: var(--text);
+      font-size: 28px; cursor: pointer; font-weight: 300;
+      transition: background 0.1s, transform 0.1s;
+    }
+    .vol-btn:active { background: var(--accent); transform: scale(0.93); }
+    .vol-label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+
+    /* Section header */
+    .sh { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin: 0 0 12px; }
+
+    /* Announce */
+    .preset-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+    .preset-btn {
+      background: var(--surface); border: none; border-radius: var(--radius);
+      color: var(--text); padding: 14px 10px; cursor: pointer; text-align: center;
+      font-size: 13px; line-height: 1.4;
+      transition: background 0.1s, transform 0.1s;
+    }
+    .preset-btn:active { background: var(--purple); transform: scale(0.95); }
+    .preset-ico { font-size: 22px; display: block; margin-bottom: 4px; }
+    .dur-row { display: flex; gap: 8px; margin-bottom: 14px; }
+    .dur-btn {
+      flex: 1; padding: 10px 4px; background: var(--surface); border: none;
+      border-radius: 10px; color: var(--muted); font-size: 12px; cursor: pointer;
+      transition: background 0.1s, color 0.1s;
+    }
+    .dur-btn.sel { background: var(--purple); color: var(--text); }
+    .announce-send {
+      width: 100%; padding: 16px; background: var(--accent); border: none;
+      border-radius: var(--radius); color: var(--text); font-size: 16px;
+      font-weight: 700; cursor: pointer; margin-bottom: 10px;
+      transition: opacity 0.1s, transform 0.1s;
+    }
+    .announce-send:active { opacity: 0.8; transform: scale(0.98); }
+    .dismiss-btn {
+      width: 100%; padding: 12px; background: var(--surface); border: none;
+      border-radius: var(--radius); color: var(--muted); font-size: 14px; cursor: pointer;
+      transition: background 0.1s;
+    }
+    .dismiss-btn:active { background: #2a1a1a; color: var(--accent); }
+
+    /* Apps */
+    .apps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .app-card {
+      background: var(--surface); border: none; border-radius: var(--radius);
+      color: var(--text); padding: 14px 8px; cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      font-size: 11px; text-align: center; min-height: 80px; justify-content: center;
+      transition: background 0.1s, transform 0.1s;
+    }
+    .app-card:active { background: var(--purple); transform: scale(0.95); }
+    .app-card .app-ico { font-size: 28px; line-height: 1; }
+    .app-card .app-name { line-height: 1.3; word-break: break-word; }
+    .empty { color: var(--muted); text-align: center; padding: 32px 0; grid-column: 1/-1; font-size: 14px; }
+
+    /* Keyboard */
+    .kb-area { display: flex; flex-direction: column; gap: 12px; }
+    .kb-input {
+      width: 100%; padding: 14px 16px;
+      background: var(--surface); border: 1px solid #2a2a4a;
+      border-radius: var(--radius); color: var(--text); font-size: 16px;
+    }
+    .kb-input::placeholder { color: var(--muted); }
+    .kb-input:focus { outline: none; border-color: var(--purple); }
+    .kb-send {
+      width: 100%; padding: 16px;
+      background: var(--purple); border: none; border-radius: var(--radius);
+      color: var(--text); font-size: 16px; font-weight: 600; cursor: pointer;
+      transition: background 0.1s, transform 0.1s;
+    }
+    .kb-send:active { background: var(--accent); transform: scale(0.98); }
+    .divider { height: 1px; background: #1f1f3a; margin: 8px 0; }
+  </style>
+</head>
+<body>
+
+<div id="statusbar">
+  <div id="dot"></div>
+  <span id="status-text">Connecting to TV...</span>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="tab('remote')">Remote</button>
+  <button class="tab" onclick="tab('apps')">Apps</button>
+  <button class="tab" onclick="tab('keyboard')">Keyboard</button>
+  <button class="tab" onclick="tab('announce')">📢 Announce</button>
+</div>
+
+<!-- Remote -->
+<div id="pane-remote" class="pane active">
+  <div class="dpad-wrap">
+    <div class="dpad">
+      <div class="dp dp-blank"></div>
+      <button class="dp" ontouchstart="tap(event,'key','DPAD_UP')" onclick="tap(event,'key','DPAD_UP')">▲</button>
+      <div class="dp dp-blank"></div>
+      <button class="dp" ontouchstart="tap(event,'key','DPAD_LEFT')" onclick="tap(event,'key','DPAD_LEFT')">◀</button>
+      <button class="dp dp-ok" ontouchstart="tap(event,'key','DPAD_CENTER')" onclick="tap(event,'key','DPAD_CENTER')">OK</button>
+      <button class="dp" ontouchstart="tap(event,'key','DPAD_RIGHT')" onclick="tap(event,'key','DPAD_RIGHT')">▶</button>
+      <div class="dp dp-blank"></div>
+      <button class="dp" ontouchstart="tap(event,'key','DPAD_DOWN')" onclick="tap(event,'key','DPAD_DOWN')">▼</button>
+      <div class="dp dp-blank"></div>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn" onclick="cmd('key','BACK')">
+      <span class="ico">←</span>Back
+    </button>
+    <button class="btn" onclick="cmd('key','HOME')">
+      <span class="ico">⌂</span>Home
+    </button>
+    <button class="btn" onclick="cmd('key','MENU')">
+      <span class="ico">☰</span>Recents
+    </button>
+    <button class="btn" onclick="cmd('power','')">
+      <span class="ico">⏻</span>Power
+    </button>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="vol-row" style="margin-top:16px">
+    <button class="vol-btn" onclick="cmd('volume','down')">−</button>
+    <span class="vol-label">Volume</span>
+    <button class="vol-btn" onclick="cmd('volume','up')">+</button>
+  </div>
+  <div style="display:flex;justify-content:center">
+    <button class="btn" style="max-width:100px" onclick="cmd('volume','mute')">
+      <span class="ico">🔇</span>Mute
+    </button>
+  </div>
+</div>
+
+<!-- Apps -->
+<div id="pane-apps" class="pane">
+  <p class="sh">Installed Apps</p>
+  <div class="apps-grid" id="apps-grid">
+    <div class="empty">Loading apps...</div>
+  </div>
+</div>
+
+<!-- Announce -->
+<div id="pane-announce" class="pane">
+  <p class="sh">Quick Messages</p>
+  <div class="preset-grid">
+    <button class="preset-btn" onclick="announce('🍽️ Dinner is ready!')">
+      <span class="preset-ico">🍽️</span>Dinner ready
+    </button>
+    <button class="preset-btn" onclick="announce('🔔 Someone is at the door!')">
+      <span class="preset-ico">🔔</span>Doorbell
+    </button>
+    <button class="preset-btn" onclick="announce('📞 You have a phone call!')">
+      <span class="preset-ico">📞</span>Phone call
+    </button>
+    <button class="preset-btn" onclick="announce('⏱️ 5 minutes!')">
+      <span class="preset-ico">⏱️</span>5 minutes
+    </button>
+    <button class="preset-btn" onclick="announce('🛏️ Time for bed!')">
+      <span class="preset-ico">🛏️</span>Bed time
+    </button>
+    <button class="preset-btn" onclick="announce('🚗 Time to go!')">
+      <span class="preset-ico">🚗</span>Time to go
+    </button>
+  </div>
+
+  <div class="divider"></div>
+
+  <p class="sh" style="margin-top:16px">Custom Message</p>
+  <div class="kb-area">
+    <input id="announce-field" class="kb-input" type="text" placeholder="Type your message...">
+
+    <div style="margin-bottom:10px">
+      <p class="sh" style="margin-bottom:8px">Display duration</p>
+      <div class="dur-row">
+        <button class="dur-btn" onclick="setDur(this,5000)">5 sec</button>
+        <button class="dur-btn sel" onclick="setDur(this,10000)">10 sec</button>
+        <button class="dur-btn" onclick="setDur(this,30000)">30 sec</button>
+        <button class="dur-btn" onclick="setDur(this,0)">Hold</button>
+      </div>
+    </div>
+
+    <button class="announce-send" onclick="sendAnnounce()">📢 Show on TV</button>
+    <button class="dismiss-btn" onclick="cmd('dismiss','')">✕ Dismiss current message</button>
+  </div>
+</div>
+
+<!-- Keyboard -->
+<div id="pane-keyboard" class="pane">
+  <p class="sh">Type on TV</p>
+  <div class="kb-area">
+    <input id="kb-field" class="kb-input" type="text" placeholder="Type text to send to TV...">
+    <button class="kb-send" onclick="sendText()">Send to TV ↵</button>
+    <div class="divider"></div>
+    <div class="btn-row">
+      <button class="btn" onclick="cmd('key','DEL')">
+        <span class="ico">⌫</span>Delete
+      </button>
+      <button class="btn" onclick="cmd('key','ENTER')">
+        <span class="ico">↵</span>Enter
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+const ICONS = {
+  'com.netflix.ninja': '🎬',
+  'com.google.android.youtube.tv': '▶️',
+  'com.google.android.youtube': '▶️',
+  'com.amazon.amazonvideo.livingroom': '📦',
+  'com.disney.disneyplus': '✨',
+  'com.spotify.tv.android': '🎵',
+  'com.spotify.music': '🎵',
+  'tv.twitch.android.viewer': '🎮',
+  'com.hbo.hbonow': '🎭',
+  'com.apple.atve.androidtv.appletv': '🍎',
+  'com.google.android.tvlauncher': '🏠',
+  'com.google.android.play.games': '🎮',
+  'org.videolan.vlc': '🎞️',
+  'com.plexapp.android': '🟡',
+  'com.kodi.kodi': '🎬',
+};
+
+let ws = null;
+let connected = false;
+let reconnectTimer = null;
+
+function connect() {
+  if (ws) { try { ws.close(); } catch (_) {} }
+  ws = new WebSocket(`ws://${location.hostname}:8081`);
+
+  ws.onopen = () => {
+    connected = true;
+    document.getElementById('dot').classList.add('on');
+    document.getElementById('status-text').textContent = 'Connected — ' + location.host;
+    loadApps();
+  };
+
+  ws.onclose = () => {
+    connected = false;
+    document.getElementById('dot').classList.remove('on');
+    document.getElementById('status-text').textContent = 'Reconnecting...';
+    clearTimeout(reconnectTimer);
+    reconnectTimer = setTimeout(connect, 2500);
+  };
+
+  ws.onerror = () => ws.close();
+}
+
+function cmd(action, value) {
+  if (!connected) return;
+  ws.send(JSON.stringify({ action, value }));
+}
+
+// Prevents ontouchstart + onclick from both firing on touch devices
+function tap(e, action, value) {
+  e.preventDefault();
+  cmd(action, value);
+}
+
+const TAB_NAMES = ['remote', 'apps', 'keyboard', 'announce'];
+
+function tab(name) {
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    t.classList.toggle('active', TAB_NAMES[i] === name);
+  });
+  document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
+  document.getElementById('pane-' + name).classList.add('active');
+}
+
+let announceDuration = 10000;
+
+function setDur(btn, ms) {
+  document.querySelectorAll('.dur-btn').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+  announceDuration = ms;
+}
+
+function announce(text) {
+  cmd('message', text + '|' + announceDuration);
+}
+
+function sendAnnounce() {
+  const field = document.getElementById('announce-field');
+  const text = field.value.trim();
+  if (text) {
+    announce(text);
+    field.value = '';
+  }
+}
+
+document.getElementById('announce-field').addEventListener('keydown', e => {
+  if (e.key === 'Enter') sendAnnounce();
+});
+
+function sendText() {
+  const field = document.getElementById('kb-field');
+  const text = field.value.trim();
+  if (text) {
+    cmd('text', text);
+    field.value = '';
+  }
+}
+
+document.getElementById('kb-field').addEventListener('keydown', e => {
+  if (e.key === 'Enter') sendText();
+});
+
+function loadApps() {
+  fetch('/api/apps')
+    .then(r => r.json())
+    .then(apps => renderApps(apps))
+    .catch(() => {
+      document.getElementById('apps-grid').innerHTML =
+        '<div class="empty">Could not load apps</div>';
+    });
+}
+
+function renderApps(apps) {
+  const grid = document.getElementById('apps-grid');
+  if (!apps || !apps.length) {
+    grid.innerHTML = '<div class="empty">No apps found</div>';
+    return;
+  }
+  grid.innerHTML = apps.map(app => {
+    const icon = ICONS[app.packageName] || '📱';
+    const label = app.label.length > 14 ? app.label.slice(0, 13) + '…' : app.label;
+    const pkg = app.packageName.replace(/'/g, '');
+    return `<button class="app-card" onclick="cmd('launch','${pkg}')">
+      <span class="app-ico">${icon}</span>
+      <span class="app-name">${escHtml(label)}</span>
+    </button>`;
+  }).join('');
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// Prevent scroll while pressing d-pad buttons
+document.addEventListener('touchmove', e => {
+  if (e.target.closest('.dp,.btn,.vol-btn,.app-card')) e.preventDefault();
+}, { passive: false });
+
+connect();
+</script>
+</body>
+</html>

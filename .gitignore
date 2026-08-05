@@ -1,0 +1,19 @@
+# ADB private key — never commit this
+app/src/main/assets/adb/adbkey
+
+# Android build outputs
+*.iml
+.gradle
+/local.properties
+/.idea
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+*.apk
+*.aab
+*.ap_
+
+# App build
+app/build/

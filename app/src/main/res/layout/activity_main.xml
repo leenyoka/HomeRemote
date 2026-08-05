@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="64dp"
+    android:background="#0f0f1a">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="HomeRemote"
+        android:textSize="42sp"
+        android:textColor="#ffffff"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="WiFi Device Remote"
+        android:textSize="18sp"
+        android:textColor="#888888"
+        android:layout_marginBottom="48dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Open on any device connected to this WiFi:"
+        android:textSize="16sp"
+        android:textColor="#aaaaaa"
+        android:layout_marginBottom="12dp" />
+
+    <TextView
+        android:id="@+id/tv_url"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="http://..."
+        android:textSize="32sp"
+        android:textColor="#e94560"
+        android:textStyle="bold"
+        android:layout_marginBottom="12dp" />
+
+    <TextView
+        android:id="@+id/tv_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textSize="14sp"
+        android:textColor="#666666"
+        android:gravity="center"
+        android:layout_marginBottom="40dp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#222233"
+        android:layout_marginBottom="28dp" />
+
+    <!-- Accessibility / D-pad -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="D-pad control: Settings › Accessibility › HomeRemote"
+        android:textSize="14sp"
+        android:textColor="#7c5cbf"
+        android:gravity="center"
+        android:layout_marginBottom="20dp" />
+
+    <!-- Overlay permission -->
+    <TextView
+        android:id="@+id/tv_overlay_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="⚠ Announce overlay: checking..."
+        android:textSize="14sp"
+        android:textColor="#e94560"
+        android:gravity="center"
+        android:layout_marginBottom="10dp" />
+
+    <Button
+        android:id="@+id/btn_overlay_permission"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Enable Announce Overlay"
+        android:backgroundTint="#533483"
+        android:textColor="#ffffff"
+        android:visibility="gone" />
+
+</LinearLayout>
