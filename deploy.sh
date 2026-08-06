@@ -15,5 +15,14 @@ adb shell am force-stop com.homeremote
 sleep 1
 adb shell am start -n com.homeremote/.MainActivity
 
+echo "Waiting for server..."
+for i in 1 2 3 4 5 6 7 8 9 10; do
+  result=$(adb shell "printf 'GET /api/ping HTTP/1.0\r\n\r\n' | nc 127.0.0.1 8080 2>&1" 2>/dev/null)
+  if echo "$result" | grep -q "200"; then
+    break
+  fi
+  sleep 1
+done
+
 IP=$(adb shell ip addr show wlan0 2>/dev/null | grep 'inet ' | awk '{print $2}' | cut -d/ -f1)
 echo "Ready: http://$IP:8080/"
