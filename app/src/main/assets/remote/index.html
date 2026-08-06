@@ -317,42 +317,40 @@ const ICONS = {
   'com.kodi.kodi': '🎬',
 };
 
-let ws = null;
 let connected = false;
-let reconnectTimer = null;
 
-function connect() {
-  if (ws) { try { ws.close(); } catch (_) {} }
-  ws = new WebSocket(`ws://${location.hostname}:8081`);
-
-  ws.onopen = () => {
-    connected = true;
-    document.getElementById('dot').classList.add('on');
-    document.getElementById('status-text').textContent = 'Connected — ' + location.host;
-    loadApps();
-  };
-
-  ws.onclose = () => {
-    connected = false;
-    document.getElementById('dot').classList.remove('on');
-    document.getElementById('status-text').textContent = 'Reconnecting...';
-    clearTimeout(reconnectTimer);
-    reconnectTimer = setTimeout(connect, 2500);
-  };
-
-  ws.onerror = () => ws.close();
+function setConnected(state) {
+  if (state === connected) return;
+  connected = state;
+  document.getElementById('dot').classList.toggle('on', state);
+  document.getElementById('status-text').textContent =
+    state ? 'Connected — ' + location.host : 'Reconnecting...';
+  if (state) loadApps();
 }
 
-function cmd(action, value) {
-  if (!connected) return;
+async function checkPing() {
   try {
-    ws.send(JSON.stringify({ action, value }));
-  } catch (_) {
-    connected = false;
-    document.getElementById('dot').classList.remove('on');
-    clearTimeout(reconnectTimer);
-    connect();
-  }
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 2000);
+    const r = await fetch('/api/ping', { signal: ctrl.signal });
+    clearTimeout(t);
+    setConnected(r.ok);
+  } catch (_) { setConnected(false); }
+}
+
+async function cmd(action, value) {
+  try {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 3000);
+    await fetch('/api/cmd', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, value }),
+      signal: ctrl.signal
+    });
+    clearTimeout(t);
+    setConnected(true);
+  } catch (_) { setConnected(false); }
 }
 
 // Prevents ontouchstart + onclick from both firing on touch devices
@@ -445,16 +443,12 @@ document.addEventListener('touchmove', e => {
   if (e.target.closest('.dp,.btn,.vol-btn,.app-card')) e.preventDefault();
 }, { passive: false });
 
-// Reconnect immediately when the tab comes back into focus
-// (mobile browsers suspend JS timers in background tabs)
 document.addEventListener('visibilitychange', () => {
-  if (!document.hidden && ws?.readyState !== WebSocket.OPEN) {
-    clearTimeout(reconnectTimer);
-    connect();
-  }
+  if (!document.hidden) checkPing();
 });
 
-connect();
+setInterval(checkPing, 3000);
+checkPing();
 </script>
 </body>
 </html>

@@ -38,7 +38,6 @@ android {
 
 dependencies {
     implementation("org.nanohttpd:nanohttpd:2.3.1")
-    implementation("org.java-websocket:Java-WebSocket:1.5.4")
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.leanback:leanback:1.2.0")
