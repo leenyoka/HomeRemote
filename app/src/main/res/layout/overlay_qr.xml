@@ -24,7 +24,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Scan to control this TV"
+            android:text="Skena ukuze ifowuni yakho ibe yirimothi."
             android:textSize="17sp"
             android:textColor="#ffffff"
             android:textStyle="bold"
@@ -37,16 +37,7 @@
             android:text=""
             android:textSize="15sp"
             android:textColor="#e94560"
-            android:textStyle="bold"
-            android:layout_marginBottom="4dp" />
-
-        <TextView
-            android:id="@+id/overlay_tv_local"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text=""
-            android:textSize="13sp"
-            android:textColor="#7c5cbf" />
+            android:textStyle="bold" />
 
     </LinearLayout>
 

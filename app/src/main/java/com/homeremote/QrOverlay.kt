@@ -22,13 +22,6 @@ class QrOverlay(private val context: Context) {
         v.findViewById<ImageView>(R.id.overlay_iv_qr).setImageBitmap(qr)
         v.findViewById<TextView>(R.id.overlay_tv_url).text = url
 
-        val deviceName = Settings.Global.getString(context.contentResolver, "device_name")
-            ?.trim()?.lowercase()
-            ?.replace(Regex("[^a-z0-9]+"), "-")?.trim('-')
-        if (!deviceName.isNullOrBlank()) {
-            v.findViewById<TextView>(R.id.overlay_tv_local).text = "or $deviceName.local:8080/"
-        }
-
         val type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
         else
