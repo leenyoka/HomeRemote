@@ -345,7 +345,14 @@ function connect() {
 
 function cmd(action, value) {
   if (!connected) return;
-  ws.send(JSON.stringify({ action, value }));
+  try {
+    ws.send(JSON.stringify({ action, value }));
+  } catch (_) {
+    connected = false;
+    document.getElementById('dot').classList.remove('on');
+    clearTimeout(reconnectTimer);
+    connect();
+  }
 }
 
 // Prevents ontouchstart + onclick from both firing on touch devices
@@ -437,6 +444,15 @@ function escHtml(s) {
 document.addEventListener('touchmove', e => {
   if (e.target.closest('.dp,.btn,.vol-btn,.app-card')) e.preventDefault();
 }, { passive: false });
+
+// Reconnect immediately when the tab comes back into focus
+// (mobile browsers suspend JS timers in background tabs)
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && ws?.readyState !== WebSocket.OPEN) {
+    clearTimeout(reconnectTimer);
+    connect();
+  }
+});
 
 connect();
 </script>
