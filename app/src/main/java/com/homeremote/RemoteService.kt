@@ -60,7 +60,7 @@ class RemoteService : Service() {
         qrOverlay = QrOverlay(this)
         server = RemoteServer(this, AppDiscovery(this))
 
-        tvUrl = "http://${getLocalIp()}:8080"
+        tvUrl = "http://homeremote:8080"
         Thread { qrBitmap = generateQrCode(tvUrl, 256) }.start()
 
         registerReceiver(dreamReceiver, IntentFilter().apply {
