@@ -13,53 +13,6 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#66000000" />
-
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical|start"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:background="#CC0f0f1a"
-        android:padding="48dp"
-        android:layout_margin="64dp">
-
-        <ImageView
-            android:id="@+id/dream_iv_qr"
-            android:layout_width="280dp"
-            android:layout_height="280dp"
-            android:background="#ffffff"
-            android:padding="10dp"
-            android:scaleType="fitXY"
-            android:layout_marginEnd="48dp" />
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="start">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Skena ukuze ifowuni yakho ibe yirimothi."
-                android:textSize="26sp"
-                android:textColor="#ffffff"
-                android:textStyle="bold"
-                android:layout_marginBottom="12dp" />
-
-            <TextView
-                android:id="@+id/dream_tv_url"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="http://homeremote:8080"
-                android:textSize="24sp"
-                android:textColor="#e94560"
-                android:textStyle="bold" />
-
-        </LinearLayout>
-
-    </LinearLayout>
+        android:background="#33000000" />
 
 </FrameLayout>
