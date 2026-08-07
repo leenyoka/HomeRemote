@@ -50,7 +50,7 @@ class MessageOverlay(private val context: Context) {
 
     private fun playAlertTone() {
         try {
-            val uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+            val uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
             RingtoneManager.getRingtone(context, uri)?.play()
         } catch (_: Exception) {}
     }
