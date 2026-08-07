@@ -194,7 +194,6 @@
 <div id="controls">
 <div class="tabs">
   <button class="tab active" onclick="tab('remote')">Remote</button>
-  <button class="tab" onclick="tab('apps')">Apps</button>
   <button class="tab" onclick="tab('keyboard')">Keyboard</button>
   <button class="tab" onclick="tab('announce')">📢 Announce</button>
 </div>
@@ -244,16 +243,13 @@
   </div>
 </div>
 
-<!-- Apps -->
-<div id="pane-apps" class="pane">
-  <p class="sh">Installed Apps</p>
-  <div class="apps-grid" id="apps-grid">
-    <div class="empty">Loading apps...</div>
-  </div>
-</div>
-
 <!-- Announce -->
 <div id="pane-announce" class="pane">
+  <div style="margin-bottom:16px">
+    <p class="sh">Your name</p>
+    <input id="sender-name" class="kb-input" type="text" placeholder="Enter your name..." oninput="saveName()">
+  </div>
+
   <p class="sh">Quick Messages</p>
   <div class="preset-grid">
     <button class="preset-btn" onclick="announce('🍽️ Dinner is ready!')">
@@ -319,24 +315,6 @@
 <script>
 'use strict';
 
-const ICONS = {
-  'com.netflix.ninja': '🎬',
-  'com.google.android.youtube.tv': '▶️',
-  'com.google.android.youtube': '▶️',
-  'com.amazon.amazonvideo.livingroom': '📦',
-  'com.disney.disneyplus': '✨',
-  'com.spotify.tv.android': '🎵',
-  'com.spotify.music': '🎵',
-  'tv.twitch.android.viewer': '🎮',
-  'com.hbo.hbonow': '🎭',
-  'com.apple.atve.androidtv.appletv': '🍎',
-  'com.google.android.tvlauncher': '🏠',
-  'com.google.android.play.games': '🎮',
-  'org.videolan.vlc': '🎞️',
-  'com.plexapp.android': '🟡',
-  'com.kodi.kodi': '🎬',
-};
-
 let connected = false;
 
 function setConnected(state) {
@@ -347,7 +325,6 @@ function setConnected(state) {
     state ? 'Connected — ' + location.host : 'Reconnecting...';
   document.getElementById('controls').style.display = state ? 'block' : 'none';
   document.getElementById('offline-msg').style.display = state ? 'none' : 'flex';
-  if (state) loadApps();
 }
 
 async function checkPing() {
@@ -381,7 +358,7 @@ function tap(e, action, value) {
   cmd(action, value);
 }
 
-const TAB_NAMES = ['remote', 'apps', 'keyboard', 'announce'];
+const TAB_NAMES = ['remote', 'keyboard', 'announce'];
 
 function tab(name) {
   document.querySelectorAll('.tab').forEach((t, i) => {
@@ -393,6 +370,19 @@ function tab(name) {
 
 let announceDuration = 10000;
 
+function saveName() {
+  localStorage.setItem('senderName', document.getElementById('sender-name').value.trim());
+}
+
+function getSender() {
+  return localStorage.getItem('senderName') || '';
+}
+
+function formatMessage(text) {
+  const name = getSender();
+  return name ? name + '\n' + text : text;
+}
+
 function setDur(btn, ms) {
   document.querySelectorAll('.dur-btn').forEach(b => b.classList.remove('sel'));
   btn.classList.add('sel');
@@ -400,7 +390,7 @@ function setDur(btn, ms) {
 }
 
 function announce(text) {
-  cmd('message', text + '|' + announceDuration);
+  cmd('message', formatMessage(text) + '|' + announceDuration);
 }
 
 function sendAnnounce() {
@@ -429,37 +419,6 @@ document.getElementById('kb-field').addEventListener('keydown', e => {
   if (e.key === 'Enter') sendText();
 });
 
-function loadApps() {
-  fetch('/api/apps')
-    .then(r => r.json())
-    .then(apps => renderApps(apps))
-    .catch(() => {
-      document.getElementById('apps-grid').innerHTML =
-        '<div class="empty">Could not load apps</div>';
-    });
-}
-
-function renderApps(apps) {
-  const grid = document.getElementById('apps-grid');
-  if (!apps || !apps.length) {
-    grid.innerHTML = '<div class="empty">No apps found</div>';
-    return;
-  }
-  grid.innerHTML = apps.map(app => {
-    const icon = ICONS[app.packageName] || '📱';
-    const label = app.label.length > 14 ? app.label.slice(0, 13) + '…' : app.label;
-    const pkg = app.packageName.replace(/'/g, '');
-    return `<button class="app-card" onclick="cmd('launch','${pkg}')">
-      <span class="app-ico">${icon}</span>
-      <span class="app-name">${escHtml(label)}</span>
-    </button>`;
-  }).join('');
-}
-
-function escHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
 // Prevent scroll while pressing d-pad buttons
 document.addEventListener('touchmove', e => {
   if (e.target.closest('.dp,.btn,.vol-btn,.app-card')) e.preventDefault();
@@ -472,6 +431,10 @@ document.addEventListener('visibilitychange', () => {
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js').catch(() => {});
 }
+
+// Restore saved sender name
+const saved = localStorage.getItem('senderName');
+if (saved) document.getElementById('sender-name').value = saved;
 
 setInterval(checkPing, 3000);
 checkPing();

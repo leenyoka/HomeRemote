@@ -3,6 +3,7 @@ package com.homeremote
 import android.content.Context
 import android.graphics.PixelFormat
 import android.graphics.drawable.GradientDrawable
+import android.media.RingtoneManager
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
@@ -23,6 +24,7 @@ class MessageOverlay(private val context: Context) {
         if (!Settings.canDrawOverlays(context)) return
         main.removeCallbacks(autoDismiss)
         dismiss()
+        playAlertTone()
 
         val view = buildView(message)
         val params = overlayParams()
@@ -46,6 +48,13 @@ class MessageOverlay(private val context: Context) {
         }
     }
 
+    private fun playAlertTone() {
+        try {
+            val uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+            RingtoneManager.getRingtone(context, uri)?.play()
+        } catch (_: Exception) {}
+    }
+
     private fun overlayParams(): WindowManager.LayoutParams {
         val type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
@@ -56,7 +65,6 @@ class MessageOverlay(private val context: Context) {
             WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.WRAP_CONTENT,
             type,
-            // Pass-through: key events and touch still reach the playing app
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                     WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
                     WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
@@ -69,15 +77,19 @@ class MessageOverlay(private val context: Context) {
 
     private fun buildView(message: String): android.view.View {
         val dp = context.resources.displayMetrics.density
-
         val p = (24 * dp).toInt()
+
+        // Split "SenderName\nMessage body" if sender is present
+        val lines = message.split("\n", limit = 2)
+        val hasSender = lines.size == 2
+        val sender = if (hasSender) lines[0] else null
+        val body = if (hasSender) lines[1] else message
+
         val row = LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            setPadding(p, (18 * dp).toInt(), p, (18 * dp).toInt())
-            background = GradientDrawable().apply {
-                setColor(0xEE111130.toInt())
-            }
+            setPadding(p, (16 * dp).toInt(), p, (16 * dp).toInt())
+            background = GradientDrawable().apply { setColor(0xEE111130.toInt()) }
         }
 
         val icon = TextView(context).apply {
@@ -86,16 +98,29 @@ class MessageOverlay(private val context: Context) {
             setPadding(0, 0, (16 * dp).toInt(), 0)
         }
 
-        val body = TextView(context).apply {
-            text = message
-            textSize = 28f
+        val textCol = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+        }
+
+        if (sender != null) {
+            textCol.addView(TextView(context).apply {
+                text = "from $sender"
+                textSize = 16f
+                setTextColor(0xFFE94560.toInt())
+                setPadding(0, 0, 0, (4 * dp).toInt())
+            })
+        }
+
+        textCol.addView(TextView(context).apply {
+            text = body
+            textSize = 26f
             setTextColor(0xFFFFFFFF.toInt())
             maxLines = 2
             ellipsize = android.text.TextUtils.TruncateAt.END
-        }
+        })
 
         row.addView(icon)
-        row.addView(body, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+        row.addView(textCol, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
         return row
     }
 }
