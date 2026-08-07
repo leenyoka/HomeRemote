@@ -1,6 +1,7 @@
 package com.homeremote
 
 import android.content.Context
+import android.media.AudioManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
@@ -41,6 +42,11 @@ class RemoteServer(
         override fun serve(session: IHTTPSession): Response {
             return when (session.uri) {
                 "/api/ping"      -> newFixedLengthResponse(Response.Status.OK, "text/plain", "ok")
+                "/api/status"    -> {
+                    val am = ctx.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+                    newFixedLengthResponse(Response.Status.OK, "application/json",
+                        """{"playing":${am.isMusicActive}}""")
+                }
                 "/api/apps"      -> newFixedLengthResponse(
                     Response.Status.OK, "application/json",
                     gson.toJson(apps.getInstalledApps())

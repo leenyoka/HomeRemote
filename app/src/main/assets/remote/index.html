@@ -46,6 +46,13 @@
       transition: background 0.3s;
     }
     #dot.on { background: #22c55e; }
+    #playing-badge {
+      margin-left: auto; font-size: 11px; padding: 2px 8px;
+      border-radius: 10px; background: #1f1f3a;
+      display: none;
+    }
+    #playing-badge.on { color: #22c55e; }
+    #playing-badge.off { color: var(--muted); }
 
     /* Tabs */
     .tabs {
@@ -184,6 +191,7 @@
 <div id="statusbar">
   <div id="dot"></div>
   <span id="status-text">Connecting to TV...</span>
+  <span id="playing-badge"></span>
 </div>
 
 <div id="offline-msg">
@@ -325,6 +333,22 @@ function setConnected(state) {
     state ? 'Connected — ' + location.host : 'Reconnecting...';
   document.getElementById('controls').style.display = state ? 'block' : 'none';
   document.getElementById('offline-msg').style.display = state ? 'none' : 'flex';
+  if (!state) {
+    const b = document.getElementById('playing-badge');
+    b.style.display = 'none';
+  }
+}
+
+async function checkStatus() {
+  if (!connected) return;
+  try {
+    const r = await fetch('/api/status');
+    const { playing } = await r.json();
+    const b = document.getElementById('playing-badge');
+    b.style.display = 'inline';
+    b.className = playing ? 'on' : 'off';
+    b.textContent = playing ? '▶ Playing' : '⏸ Idle';
+  } catch (_) {}
 }
 
 async function checkPing() {
@@ -437,6 +461,7 @@ const saved = localStorage.getItem('senderName');
 if (saved) document.getElementById('sender-name').value = saved;
 
 setInterval(checkPing, 3000);
+setInterval(checkStatus, 5000);
 checkPing();
 </script>
 </body>
