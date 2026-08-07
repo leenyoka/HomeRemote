@@ -15,6 +15,8 @@ adb -s "$TV" install -r "app/build/outputs/apk/debug/app-debug.apk"
 echo "Restarting app..."
 adb -s "$TV" shell am force-stop com.homeremote
 sleep 1
+adb -s "$TV" shell settings put secure enabled_accessibility_services com.homeremote/.RemoteAccessibilityService
+adb -s "$TV" shell settings put secure accessibility_enabled 1
 adb -s "$TV" shell am start -n com.homeremote/.MainActivity
 
 echo "Waiting for server..."
