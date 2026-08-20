@@ -10,17 +10,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
 import android.widget.ImageView
-import android.widget.TextView
 
 class QrOverlay(private val context: Context) {
     private val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
     private var view: View? = null
 
-    fun show(url: String, qr: Bitmap) {
+    fun show(qr: Bitmap) {
         if (view != null || !Settings.canDrawOverlays(context)) return
         val v = LayoutInflater.from(context).inflate(R.layout.overlay_qr, null)
         v.findViewById<ImageView>(R.id.overlay_iv_qr).setImageBitmap(qr)
-        v.findViewById<TextView>(R.id.overlay_tv_url).text = url
 
         val type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY

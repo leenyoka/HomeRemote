@@ -33,7 +33,7 @@ class RemoteService : Service() {
     private val dreamReceiver = object : BroadcastReceiver() {
         override fun onReceive(ctx: Context, intent: Intent) {
             when (intent.action) {
-                Intent.ACTION_DREAMING_STARTED -> qrBitmap?.let { qrOverlay.show(tvUrl, it) }
+                Intent.ACTION_DREAMING_STARTED -> qrBitmap?.let { qrOverlay.show(it) }
                 Intent.ACTION_DREAMING_STOPPED -> qrOverlay.hide()
             }
         }
