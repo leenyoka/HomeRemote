@@ -33,7 +33,7 @@ class QrOverlay(private val context: Context) {
             WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
             PixelFormat.TRANSLUCENT
         ).apply {
-            gravity = Gravity.BOTTOM or Gravity.END
+            gravity = Gravity.TOP or Gravity.END
             x = 48
             y = 48
         }

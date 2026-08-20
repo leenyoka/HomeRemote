@@ -15,9 +15,12 @@ adb -s "$TV" install -r "app/build/outputs/apk/debug/app-debug.apk"
 echo "Restarting app..."
 adb -s "$TV" shell am force-stop com.homeremote
 sleep 1
+adb -s "$TV" shell am start -n com.homeremote/.MainActivity
+sleep 2
+
+echo "Re-enabling accessibility..."
 adb -s "$TV" shell settings put secure enabled_accessibility_services com.homeremote/.RemoteAccessibilityService
 adb -s "$TV" shell settings put secure accessibility_enabled 1
-adb -s "$TV" shell am start -n com.homeremote/.MainActivity
 
 echo "Waiting for server..."
 for i in 1 2 3 4 5 6 7 8 9 10; do
