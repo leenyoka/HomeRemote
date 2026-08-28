@@ -3,7 +3,8 @@ set -e
 
 export JAVA_HOME="C:/Program Files/Android/Android Studio/jbr"
 export PATH="$PATH:/c/Users/Linda/AppData/Local/Android/Sdk/platform-tools"
-TV="YOUR_TV_IP:5555"
+# Set your TV's IP in .tv_ip (gitignored) — e.g. echo "192.168.1.100" > .tv_ip
+TV="${TV_IP:-$(cat .tv_ip 2>/dev/null || echo YOUR_TV_IP)}:5555"
 adb connect "$TV" >/dev/null 2>&1
 
 echo "Building..."

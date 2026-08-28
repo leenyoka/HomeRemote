@@ -17,3 +17,6 @@ app/src/main/assets/adb/adbkey
 
 # App build
 app/build/
+
+# Local TV IP — never commit this
+.tv_ip
